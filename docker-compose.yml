@@ -6,6 +6,9 @@ services:
     env_file:
       - .env.local
     volumes:
-      - "./uploads:/app/uploads"
+      - uploads:/app/uploads
     user: root
     restart: unless-stopped
+
+volumes:
+  uploads:
