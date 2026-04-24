@@ -142,7 +142,21 @@ Displayed values: `Saved` | `Applied` | `Interviewing` | `Offer` | `Accepted` | 
 - Row of counters at the top of the board: Saved (n) | Applied (n) | Interviewing (n) | Offer (n)
 - Clicking a counter filters the table to that status
 
-### 5.7 Google Sheets Sync
+### 5.8 Resume & Cover Letter Attachments
+
+**Description:** Attach a resume and/or cover letter PDF/DOCX to any job entry.
+
+**Requirements:**
+- File picker inputs in the job modal for Resume and Cover Letter
+- On save, files are uploaded to a `Job Tracker/` folder in Google Drive via the Drive API (same service account)
+- Drive file URLs stored in the Google Sheet (`resume_url`, `cover_letter_url` columns)
+- Uploaded files are accessible to anyone with the link (viewer permission)
+- Existing attachments shown as clickable links in the modal with a Replace option
+- Attachment indicators (paperclip icons) shown in the job table row
+- Accepted formats: PDF, DOC, DOCX (max ~4MB per file)
+- Requires Google Drive API enabled on the same Google Cloud project
+
+### 5.9 Google Sheets Sync
 
 **Requirements:**
 - All reads on page load — fetch all rows from the sheet
@@ -236,7 +250,6 @@ docker compose up
 | Chrome extension for auto-extracting jobs | Phase 2 |
 | AI-powered resume & cover letter generation (Claude/Anthropic) | Phase 3 |
 | Gmail integration — send applications directly | Phase 3 |
-| Google Drive — save/link documents to jobs | Phase 3 |
 | Networking tracker — LinkedIn connection log | Phase 4 |
 | Portal upload tracking | Phase 3 |
 
@@ -249,6 +262,8 @@ docker compose up
 - Never miss a follow-up (action-required section is visible on load)
 - All data persists in Google Sheets and survives page refresh
 - Can run locally with `npm run dev` after one-time Google Sheets setup
+- Can attach a resume or cover letter to a job in under 10 seconds
+- Attached files are accessible via Drive link from the job detail view
 
 ---
 

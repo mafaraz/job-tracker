@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Job, JobFormData, JOB_STATUSES, JOB_SOURCES } from "@/types/job";
 
 interface Props {
@@ -25,6 +25,8 @@ const EMPTY: JobFormData = {
   salary_range: "",
   notes: "",
   job_description: "",
+  resume_url: "",
+  cover_letter_url: "",
 };
 
 export default function JobModal({ job, onClose, onSave, onDelete }: Props) {
@@ -33,6 +35,12 @@ export default function JobModal({ job, onClose, onSave, onDelete }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [coverLetterFile, setCoverLetterFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const resumeRef = useRef<HTMLInputElement>(null);
+  const coverLetterRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (job) {
       const { id, date_added, ...rest } = job;
@@ -40,17 +48,46 @@ export default function JobModal({ job, onClose, onSave, onDelete }: Props) {
     } else {
       setForm(EMPTY);
     }
+    setResumeFile(null);
+    setCoverLetterFile(null);
   }, [job]);
 
   function set<K extends keyof JobFormData>(key: K, value: JobFormData[K]) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
+  async function uploadFile(file: File): Promise<string> {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    if (!res.ok) throw new Error("Upload failed");
+    const data = await res.json();
+    return data.url;
+  }
+
   async function handleSave() {
     if (!form.job_title.trim() || !form.company.trim()) return;
     setSaving(true);
-    await onSave(form);
-    setSaving(false);
+    setUploading(false);
+
+    let updatedForm = { ...form };
+
+    try {
+      if (resumeFile || coverLetterFile) {
+        setUploading(true);
+        if (resumeFile) {
+          updatedForm.resume_url = await uploadFile(resumeFile);
+        }
+        if (coverLetterFile) {
+          updatedForm.cover_letter_url = await uploadFile(coverLetterFile);
+        }
+        setUploading(false);
+      }
+      await onSave(updatedForm);
+    } finally {
+      setSaving(false);
+      setUploading(false);
+    }
   }
 
   async function handleDelete() {
@@ -193,6 +230,26 @@ export default function JobModal({ job, onClose, onSave, onDelete }: Props) {
             </Field>
           </div>
 
+          {/* Attachments */}
+          <div className="grid grid-cols-2 gap-4">
+            <FileField
+              label="Resume"
+              existingUrl={form.resume_url}
+              selectedFile={resumeFile}
+              inputRef={resumeRef}
+              onFileChange={setResumeFile}
+              onClear={() => { setResumeFile(null); set("resume_url", ""); }}
+            />
+            <FileField
+              label="Cover Letter"
+              existingUrl={form.cover_letter_url}
+              selectedFile={coverLetterFile}
+              inputRef={coverLetterRef}
+              onFileChange={setCoverLetterFile}
+              onClear={() => { setCoverLetterFile(null); set("cover_letter_url", ""); }}
+            />
+          </div>
+
           {/* Notes */}
           <Field label="Notes">
             <textarea
@@ -243,7 +300,10 @@ export default function JobModal({ job, onClose, onSave, onDelete }: Props) {
               )
             )}
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
+            {uploading && (
+              <span className="text-xs text-gray-400">Uploading files...</span>
+            )}
             <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">
               Cancel
             </button>
@@ -252,12 +312,81 @@ export default function JobModal({ job, onClose, onSave, onDelete }: Props) {
               disabled={saving || !form.job_title.trim() || !form.company.trim()}
               className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              {saving ? "Saving..." : isEdit ? "Save Changes" : "Add Job"}
+              {saving ? (uploading ? "Uploading..." : "Saving...") : isEdit ? "Save Changes" : "Add Job"}
             </button>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+interface FileFieldProps {
+  label: string;
+  existingUrl: string;
+  selectedFile: File | null;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  onFileChange: (file: File) => void;
+  onClear: () => void;
+}
+
+function FileField({ label, existingUrl, selectedFile, inputRef, onFileChange, onClear }: FileFieldProps) {
+  const hasExisting = !!existingUrl;
+  const hasNew = !!selectedFile;
+
+  return (
+    <Field label={label}>
+      <div className="flex flex-col gap-1.5">
+        {hasExisting && !hasNew && (
+          <div className="flex items-center gap-2">
+            <a
+              href={existingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-600 hover:underline truncate max-w-[160px]"
+            >
+              View attached file
+            </a>
+            <button
+              type="button"
+              onClick={onClear}
+              className="text-xs text-gray-400 hover:text-red-500"
+            >
+              Remove
+            </button>
+          </div>
+        )}
+        {hasNew && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-green-700 truncate max-w-[160px]">{selectedFile.name}</span>
+            <button
+              type="button"
+              onClick={() => { onClear(); if (inputRef.current) inputRef.current.value = ""; }}
+              className="text-xs text-gray-400 hover:text-red-500"
+            >
+              Remove
+            </button>
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="text-xs px-3 py-1.5 border border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors text-left"
+        >
+          {hasExisting && !hasNew ? "Replace file" : "Attach PDF / DOCX"}
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) onFileChange(f);
+          }}
+        />
+      </div>
+    </Field>
   );
 }
 

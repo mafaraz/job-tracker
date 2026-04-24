@@ -29,6 +29,7 @@ export default function JobTable({ jobs, onSelect }: Props) {
             <th className="px-4 py-3 text-left">Date Added</th>
             <th className="px-4 py-3 text-left">Follow Up</th>
             <th className="px-4 py-3 text-left">Type</th>
+            <th className="px-4 py-3 text-left">Docs</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
@@ -77,6 +78,34 @@ export default function JobTable({ jobs, onSelect }: Props) {
                   ) : (
                     <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs">Outbound</span>
                   )}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex gap-1.5">
+                    {job.resume_url && (
+                      <a
+                        href={job.resume_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        title="Resume"
+                        className="text-blue-500 hover:text-blue-700 text-xs px-1.5 py-0.5 bg-blue-50 rounded"
+                      >
+                        CV
+                      </a>
+                    )}
+                    {job.cover_letter_url && (
+                      <a
+                        href={job.cover_letter_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        title="Cover Letter"
+                        className="text-violet-500 hover:text-violet-700 text-xs px-1.5 py-0.5 bg-violet-50 rounded"
+                      >
+                        CL
+                      </a>
+                    )}
+                  </div>
                 </td>
               </tr>
             );

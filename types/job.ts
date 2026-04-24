@@ -31,6 +31,8 @@ export interface Job {
   salary_range: string;
   notes: string;
   job_description: string;
+  resume_url: string;
+  cover_letter_url: string;
 }
 
 export type JobFormData = Omit<Job, "id" | "date_added">;

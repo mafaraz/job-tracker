@@ -20,7 +20,13 @@ const HEADER_ROW = [
   "salary_range",
   "notes",
   "job_description",
+  "resume_url",
+  "cover_letter_url",
 ];
+
+const COL_RANGE = `A:R`;
+const DATA_RANGE = `${SHEET_NAME}!A2:R`;
+const HEADER_RANGE = `${SHEET_NAME}!A1:R1`;
 
 function getAuth() {
   return new google.auth.GoogleAuth({
@@ -54,6 +60,8 @@ function rowToJob(row: string[]): Job {
     salary_range: row[13] ?? "",
     notes: row[14] ?? "",
     job_description: row[15] ?? "",
+    resume_url: row[16] ?? "",
+    cover_letter_url: row[17] ?? "",
   };
 }
 
@@ -75,6 +83,8 @@ function jobToRow(job: Job): string[] {
     job.salary_range,
     job.notes,
     job.job_description,
+    job.resume_url,
+    job.cover_letter_url,
   ];
 }
 
@@ -82,14 +92,17 @@ export async function ensureHeaderRow() {
   const sheets = getSheets();
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `${SHEET_NAME}!A1:P1`,
+    range: HEADER_RANGE,
   });
-  if (!res.data.values || res.data.values.length === 0) {
+  const existing = res.data.values?.[0] ?? [];
+  const missing = HEADER_ROW.slice(existing.length);
+  if (missing.length > 0) {
+    const startCol = String.fromCharCode(65 + existing.length);
     await sheets.spreadsheets.values.update({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: `${SHEET_NAME}!A1`,
+      range: `${SHEET_NAME}!${startCol}1`,
       valueInputOption: "RAW",
-      requestBody: { values: [HEADER_ROW] },
+      requestBody: { values: [missing] },
     });
   }
 }
@@ -98,7 +111,7 @@ export async function getAllJobs(): Promise<Job[]> {
   const sheets = getSheets();
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `${SHEET_NAME}!A2:P`,
+    range: DATA_RANGE,
   });
   const rows = res.data.values ?? [];
   return rows.filter((r) => r[0]).map(rowToJob);
@@ -113,7 +126,7 @@ export async function addJob(data: JobFormData): Promise<Job> {
   const sheets = getSheets();
   await sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `${SHEET_NAME}!A:P`,
+    range: `${SHEET_NAME}!${COL_RANGE}`,
     valueInputOption: "RAW",
     requestBody: { values: [jobToRow(job)] },
   });
@@ -124,7 +137,7 @@ export async function updateJob(id: string, data: Partial<JobFormData>): Promise
   const sheets = getSheets();
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `${SHEET_NAME}!A:P`,
+    range: `${SHEET_NAME}!${COL_RANGE}`,
   });
   const rows = res.data.values ?? [];
   const rowIndex = rows.findIndex((r) => r[0] === id);
@@ -136,7 +149,7 @@ export async function updateJob(id: string, data: Partial<JobFormData>): Promise
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `${SHEET_NAME}!A${sheetRow}:P${sheetRow}`,
+    range: `${SHEET_NAME}!A${sheetRow}:R${sheetRow}`,
     valueInputOption: "RAW",
     requestBody: { values: [jobToRow(updated)] },
   });
