@@ -1,6 +1,6 @@
 # Product Requirements Document — Job Tracker
 
-**Version:** 1.0 (MVP)
+**Version:** 1.1 (MVP)
 **Date:** 2026-04-24
 **Author:** Ahmad Faraz
 **Status:** Draft
@@ -43,7 +43,8 @@ Single user — the job seeker (Ahmad Faraz). No authentication complexity requi
 | Styling | Tailwind CSS | Fast, utility-first, no separate CSS files |
 | Data Store | Google Sheets (via Google Sheets API v4) | Zero infra, human-readable, editable directly |
 | Auth | Google OAuth 2.0 (service account or OAuth client) | Required to read/write Google Sheets |
-| Hosting | Local only (npm run dev) | MVP — no deployment needed |
+| Containerisation | Docker (multi-stage build) | Consistent runtime, easy to move to any host later |
+| Hosting | Local via Docker or `npm run dev` | MVP — no cloud deployment needed yet |
 
 ---
 
@@ -189,7 +190,46 @@ GOOGLE_PRIVATE_KEY=
 
 ---
 
-## 9. Out of Scope Decisions (Deferred)
+## 9. Docker Setup
+
+### 9.1 Overview
+
+The app is containerised using a multi-stage Docker build for a minimal production image. Environment variables (Google credentials) are injected at `docker run` time via an env file — never baked into the image.
+
+### 9.2 Files
+
+| File | Purpose |
+|---|---|
+| `Dockerfile` | Multi-stage build: deps → builder → runner |
+| `.dockerignore` | Excludes node_modules, .env files, .next cache |
+| `docker-compose.yml` | One-command local run with env file wiring |
+
+### 9.3 Running with Docker
+
+```bash
+# Build the image
+docker build -t job-tracker .
+
+# Run with env file
+docker run -p 3000:3000 --env-file .env.local job-tracker
+```
+
+Or with Compose:
+
+```bash
+docker compose up
+```
+
+### 9.4 Notes
+
+- `next.config.ts` uses `output: 'standalone'` to produce a minimal self-contained build
+- The container runs as a non-root user (`nextjs`) for security
+- Port `3000` is exposed; map to any host port as needed
+- `.env.local` is never copied into the image — always passed at runtime
+
+---
+
+## 10. Out of Scope Decisions (Deferred)
 
 | Feature | Deferred To |
 |---|---|
@@ -202,7 +242,7 @@ GOOGLE_PRIVATE_KEY=
 
 ---
 
-## 10. Success Criteria (MVP)
+## 11. Success Criteria (MVP)
 
 - Can add a job in under 30 seconds
 - Can see all jobs and their statuses at a glance
