@@ -5,4 +5,6 @@ services:
       - "3000:3000"
     env_file:
       - .env.local
+    volumes:
+      - "G:/My Drive/personal/job hunting/2026:/app/uploads"
     restart: unless-stopped

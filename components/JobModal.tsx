@@ -59,6 +59,7 @@ export default function JobModal({ job, onClose, onSave, onDelete }: Props) {
   async function uploadFile(file: File): Promise<string> {
     const fd = new FormData();
     fd.append("file", file);
+    fd.append("company", form.company || "Unknown");
     const res = await fetch("/api/upload", { method: "POST", body: fd });
     if (!res.ok) throw new Error("Upload failed");
     const data = await res.json();

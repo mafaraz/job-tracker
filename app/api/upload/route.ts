@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { uploadFileToDrive } from "@/lib/drive";
+import { saveFile } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -13,6 +13,7 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
+    const company = (formData.get("company") as string | null) || "Unknown";
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const url = await uploadFileToDrive(buffer, file.name, file.type);
+    const url = await saveFile(buffer, company, file.name);
 
     return NextResponse.json({ url, name: file.name });
   } catch (err) {
