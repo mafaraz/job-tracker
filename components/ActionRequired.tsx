@@ -19,21 +19,24 @@ export default function ActionRequired({ jobs, onSelect }: Props) {
   if (actionJobs.length === 0) return null;
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-      <h2 className="text-sm font-semibold text-amber-800 mb-2">
-        Action Required ({actionJobs.length})
-      </h2>
-      <div className="flex flex-col gap-1">
-        {actionJobs.map((job) => (
-          <button
-            key={job.id}
-            onClick={() => onSelect(job)}
-            className="text-left text-sm text-amber-900 hover:underline"
-          >
-            {job.company} — {job.job_title}
-            <span className="ml-2 text-amber-600 text-xs">Follow up by {job.follow_up_date}</span>
-          </button>
-        ))}
+    <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 flex items-start gap-3">
+      <div className="mt-0.5 w-5 h-5 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0">
+        <span className="text-white text-xs font-bold">{actionJobs.length}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-amber-800 mb-1">Follow-up required</p>
+        <div className="flex flex-wrap gap-x-4 gap-y-1">
+          {actionJobs.map((job) => (
+            <button
+              key={job.id}
+              onClick={() => onSelect(job)}
+              className="text-sm text-amber-700 hover:text-amber-900 hover:underline"
+            >
+              {job.company} — {job.job_title}
+              <span className="ml-1.5 text-amber-500 text-xs">({job.follow_up_date})</span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

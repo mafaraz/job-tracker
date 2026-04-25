@@ -1,6 +1,11 @@
 import { Job, JobStatus } from "@/types/job";
 
-const TRACKED: JobStatus[] = ["Saved", "Applied", "Interviewing", "Offer"];
+const STAGES: { status: JobStatus; color: string; activeColor: string }[] = [
+  { status: "Saved",        color: "text-slate-600",   activeColor: "bg-slate-600" },
+  { status: "Applied",      color: "text-blue-600",    activeColor: "bg-blue-600" },
+  { status: "Interviewing", color: "text-amber-600",   activeColor: "bg-amber-600" },
+  { status: "Offer",        color: "text-emerald-600", activeColor: "bg-emerald-600" },
+];
 
 interface Props {
   jobs: Job[];
@@ -10,24 +15,22 @@ interface Props {
 
 export default function PipelineSummary({ jobs, activeFilter, onFilter }: Props) {
   return (
-    <div className="flex gap-3 flex-wrap">
-      {TRACKED.map((status) => {
+    <div className="grid grid-cols-4 gap-4">
+      {STAGES.map(({ status, color, activeColor }) => {
         const count = jobs.filter((j) => j.status === status).length;
         const isActive = activeFilter === status;
         return (
           <button
             key={status}
             onClick={() => onFilter(isActive ? null : status)}
-            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+            className={`bg-white rounded-xl border p-4 text-left transition-all cursor-pointer ${
               isActive
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-gray-700 border-gray-200 hover:border-blue-400"
+                ? "border-blue-400 ring-2 ring-blue-100 shadow-sm"
+                : "border-slate-200 hover:border-blue-300 hover:shadow-sm"
             }`}
           >
-            {status}
-            <span className={`ml-2 px-1.5 py-0.5 rounded-full text-xs ${isActive ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600"}`}>
-              {count}
-            </span>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{status}</p>
+            <p className={`text-2xl font-bold ${isActive ? "text-blue-600" : color}`}>{count}</p>
           </button>
         );
       })}
