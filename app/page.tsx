@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { UserButton } from "@clerk/nextjs";
 import { Job, JobStatus, JobSource, JobFormData, JOB_SOURCES, JOB_STATUSES } from "@/types/job";
 import JobTable from "@/components/JobTable";
 import JobModal from "@/components/JobModal";
@@ -101,13 +102,16 @@ export default function HomePage() {
             </div>
             <span className="font-semibold text-slate-900 text-sm">Job Tracker</span>
           </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-          >
-            <span className="text-base leading-none">+</span>
-            Add Job
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+            >
+              <span className="text-base leading-none">+</span>
+              Add Job
+            </button>
+            <UserButton />
+          </div>
         </div>
       </header>
 
