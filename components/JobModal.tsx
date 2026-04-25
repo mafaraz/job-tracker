@@ -16,9 +16,11 @@ const EMPTY: JobFormData = {
   location: "",
   source: "LinkedIn",
   job_url: "",
-  status: "Saved",
+  status: "Bookmarked",
   date_applied: "",
   follow_up_date: "",
+  deadline: "",
+  excitement: 0,
   inbound: false,
   recruiter_name: "",
   recruiter_email: "",
@@ -90,7 +92,7 @@ export default function JobModal({ job, onClose, onSave, onDelete }: Props) {
 
         <div className="px-7 py-5 flex flex-col gap-5">
 
-          {/* Section: Role */}
+          {/* Role */}
           <Section title="Role">
             <div className="grid grid-cols-2 gap-4">
               <Field label="Job Title *">
@@ -104,7 +106,7 @@ export default function JobModal({ job, onClose, onSave, onDelete }: Props) {
               <Field label="Location">
                 <input className={inputCls} value={form.location} onChange={(e) => set("location", e.target.value)} placeholder="e.g. Sydney, AU" />
               </Field>
-              <Field label="Salary Range">
+              <Field label="Max. Salary">
                 <input className={inputCls} value={form.salary_range} onChange={(e) => set("salary_range", e.target.value)} placeholder="e.g. $120k–$140k" />
               </Field>
             </div>
@@ -115,7 +117,7 @@ export default function JobModal({ job, onClose, onSave, onDelete }: Props) {
             </div>
           </Section>
 
-          {/* Section: Status */}
+          {/* Application */}
           <Section title="Application">
             <div className="grid grid-cols-3 gap-4">
               <Field label="Status">
@@ -135,17 +137,25 @@ export default function JobModal({ job, onClose, onSave, onDelete }: Props) {
                 </label>
               </Field>
             </div>
-            <div className="grid grid-cols-2 gap-4 mt-3">
+            <div className="grid grid-cols-3 gap-4 mt-3">
               <Field label="Date Applied">
                 <input className={inputCls} type="date" value={form.date_applied} onChange={(e) => set("date_applied", e.target.value)} />
+              </Field>
+              <Field label="Deadline">
+                <input className={inputCls} type="date" value={form.deadline} onChange={(e) => set("deadline", e.target.value)} />
               </Field>
               <Field label="Follow-up Date">
                 <input className={inputCls} type="date" value={form.follow_up_date} onChange={(e) => set("follow_up_date", e.target.value)} />
               </Field>
             </div>
+            <div className="mt-3">
+              <Field label="Excitement">
+                <StarPicker value={form.excitement} onChange={(v) => set("excitement", v)} />
+              </Field>
+            </div>
           </Section>
 
-          {/* Section: Recruiter */}
+          {/* Recruiter */}
           <Section title="Recruiter">
             <div className="grid grid-cols-2 gap-4">
               <Field label="Name">
@@ -157,7 +167,7 @@ export default function JobModal({ job, onClose, onSave, onDelete }: Props) {
             </div>
           </Section>
 
-          {/* Section: Documents */}
+          {/* Documents */}
           <Section title="Documents">
             <div className="grid grid-cols-2 gap-4">
               <Field label="Resume Path / URL">
@@ -169,7 +179,7 @@ export default function JobModal({ job, onClose, onSave, onDelete }: Props) {
             </div>
           </Section>
 
-          {/* Section: Notes */}
+          {/* Notes */}
           <Section title="Notes">
             <Field label="Notes">
               <textarea className={`${inputCls} resize-none`} rows={3} value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Interview notes, contact info, anything useful..." />
@@ -218,6 +228,31 @@ export default function JobModal({ job, onClose, onSave, onDelete }: Props) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [hovered, setHovered] = useState(0);
+  return (
+    <div className="flex items-center gap-1 mt-1">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <button
+          key={i}
+          type="button"
+          onClick={() => onChange(value === i ? 0 : i)}
+          onMouseEnter={() => setHovered(i)}
+          onMouseLeave={() => setHovered(0)}
+          className="text-xl leading-none transition-colors focus:outline-none"
+        >
+          <span className={(hovered || value) >= i ? "text-amber-400" : "text-slate-200"}>
+            ★
+          </span>
+        </button>
+      ))}
+      {value > 0 && (
+        <span className="text-xs text-slate-400 ml-1">{value}/5</span>
+      )}
     </div>
   );
 }

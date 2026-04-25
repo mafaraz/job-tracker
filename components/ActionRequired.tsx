@@ -5,7 +5,7 @@ interface Props {
   onSelect: (job: Job) => void;
 }
 
-const DONE_STATUSES = ["Rejected", "Accepted", "Closed"];
+const DONE_STATUSES = ["Accepted", "I Withdrew", "Not Selected", "No Response", "Archived"];
 
 export default function ActionRequired({ jobs, onSelect }: Props) {
   const today = new Date().toISOString().split("T")[0];

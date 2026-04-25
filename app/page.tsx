@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Job, JobStatus, JobSource, JobFormData, JOB_SOURCES } from "@/types/job";
+import { Job, JobStatus, JobSource, JobFormData, JOB_SOURCES, JOB_STATUSES } from "@/types/job";
 import JobTable from "@/components/JobTable";
 import JobModal from "@/components/JobModal";
 import PipelineSummary from "@/components/PipelineSummary";
@@ -131,6 +131,14 @@ export default function HomePage() {
               className="pl-8 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-52 placeholder:text-slate-300"
             />
           </div>
+          <select
+            value={statusFilter ?? "All"}
+            onChange={(e) => setStatusFilter(e.target.value === "All" ? null : e.target.value as JobStatus)}
+            className={selectCls}
+          >
+            <option value="All">All Statuses</option>
+            {JOB_STATUSES.map((s) => <option key={s}>{s}</option>)}
+          </select>
           <select
             value={sourceFilter}
             onChange={(e) => setSourceFilter(e.target.value as JobSource | "All")}

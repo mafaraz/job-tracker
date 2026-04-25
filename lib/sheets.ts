@@ -14,6 +14,8 @@ const HEADER_ROW = [
   "date_added",
   "date_applied",
   "follow_up_date",
+  "deadline",
+  "excitement",
   "inbound",
   "recruiter_name",
   "recruiter_email",
@@ -24,9 +26,9 @@ const HEADER_ROW = [
   "cover_letter_url",
 ];
 
-const COL_RANGE = `A:R`;
-const DATA_RANGE = `${SHEET_NAME}!A2:R`;
-const HEADER_RANGE = `${SHEET_NAME}!A1:R1`;
+const COL_RANGE = `A:T`;
+const DATA_RANGE = `${SHEET_NAME}!A2:T`;
+const HEADER_RANGE = `${SHEET_NAME}!A1:T1`;
 
 function getAuth() {
   return new google.auth.GoogleAuth({
@@ -44,24 +46,26 @@ function getSheets() {
 
 function rowToJob(row: string[]): Job {
   return {
-    id: row[0] ?? "",
-    job_title: row[1] ?? "",
-    company: row[2] ?? "",
-    location: row[3] ?? "",
-    source: (row[4] as Job["source"]) ?? "Other",
-    job_url: row[5] ?? "",
-    status: (row[6] as Job["status"]) ?? "Saved",
-    date_added: row[7] ?? "",
-    date_applied: row[8] ?? "",
-    follow_up_date: row[9] ?? "",
-    inbound: row[10] === "TRUE",
-    recruiter_name: row[11] ?? "",
-    recruiter_email: row[12] ?? "",
-    salary_range: row[13] ?? "",
-    notes: row[14] ?? "",
-    job_description: row[15] ?? "",
-    resume_url: row[16] ?? "",
-    cover_letter_url: row[17] ?? "",
+    id:               row[0]  ?? "",
+    job_title:        row[1]  ?? "",
+    company:          row[2]  ?? "",
+    location:         row[3]  ?? "",
+    source:           (row[4]  as Job["source"]) ?? "Other",
+    job_url:          row[5]  ?? "",
+    status:           (row[6]  as Job["status"]) ?? "Bookmarked",
+    date_added:       row[7]  ?? "",
+    date_applied:     row[8]  ?? "",
+    follow_up_date:   row[9]  ?? "",
+    deadline:         row[10] ?? "",
+    excitement:       parseInt(row[11] ?? "0", 10) || 0,
+    inbound:          row[12] === "TRUE",
+    recruiter_name:   row[13] ?? "",
+    recruiter_email:  row[14] ?? "",
+    salary_range:     row[15] ?? "",
+    notes:            row[16] ?? "",
+    job_description:  row[17] ?? "",
+    resume_url:       row[18] ?? "",
+    cover_letter_url: row[19] ?? "",
   };
 }
 
@@ -77,6 +81,8 @@ function jobToRow(job: Job): string[] {
     job.date_added,
     job.date_applied,
     job.follow_up_date,
+    job.deadline,
+    job.excitement ? String(job.excitement) : "",
     job.inbound ? "TRUE" : "FALSE",
     job.recruiter_name,
     job.recruiter_email,
@@ -149,7 +155,7 @@ export async function updateJob(id: string, data: Partial<JobFormData>): Promise
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `${SHEET_NAME}!A${sheetRow}:R${sheetRow}`,
+    range: `${SHEET_NAME}!A${sheetRow}:T${sheetRow}`,
     valueInputOption: "RAW",
     requestBody: { values: [jobToRow(updated)] },
   });

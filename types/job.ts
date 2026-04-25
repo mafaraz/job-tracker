@@ -1,11 +1,14 @@
 export type JobStatus =
-  | "Saved"
+  | "Bookmarked"
+  | "Applying"
   | "Applied"
   | "Interviewing"
-  | "Offer"
+  | "Negotiating"
   | "Accepted"
-  | "Rejected"
-  | "Closed";
+  | "I Withdrew"
+  | "Not Selected"
+  | "No Response"
+  | "Archived";
 
 export type JobSource =
   | "LinkedIn"
@@ -25,6 +28,8 @@ export interface Job {
   date_added: string;
   date_applied: string;
   follow_up_date: string;
+  deadline: string;
+  excitement: number;
   inbound: boolean;
   recruiter_name: string;
   recruiter_email: string;
@@ -38,13 +43,34 @@ export interface Job {
 export type JobFormData = Omit<Job, "id" | "date_added">;
 
 export const JOB_STATUSES: JobStatus[] = [
-  "Saved",
+  "Bookmarked",
+  "Applying",
   "Applied",
   "Interviewing",
-  "Offer",
+  "Negotiating",
   "Accepted",
-  "Rejected",
-  "Closed",
+  "I Withdrew",
+  "Not Selected",
+  "No Response",
+  "Archived",
+];
+
+// Stages shown in the pipeline flow bar (forward-progression only)
+export const PIPELINE_STAGES: JobStatus[] = [
+  "Bookmarked",
+  "Applying",
+  "Applied",
+  "Interviewing",
+  "Negotiating",
+  "Accepted",
+];
+
+// Terminal/exit statuses not shown in the pipeline bar
+export const TERMINAL_STATUSES: JobStatus[] = [
+  "I Withdrew",
+  "Not Selected",
+  "No Response",
+  "Archived",
 ];
 
 export const JOB_SOURCES: JobSource[] = [
@@ -56,11 +82,14 @@ export const JOB_SOURCES: JobSource[] = [
 ];
 
 export const STATUS_COLORS: Record<JobStatus, string> = {
-  Saved:       "bg-slate-100 text-slate-600 border border-slate-200",
-  Applied:     "bg-blue-50 text-blue-700 border border-blue-200",
-  Interviewing:"bg-amber-50 text-amber-700 border border-amber-200",
-  Offer:       "bg-emerald-50 text-emerald-700 border border-emerald-200",
-  Accepted:    "bg-green-50 text-green-700 border border-green-200",
-  Rejected:    "bg-red-50 text-red-600 border border-red-200",
-  Closed:      "bg-slate-100 text-slate-500 border border-slate-200",
+  Bookmarked:    "bg-slate-100 text-slate-600 border border-slate-200",
+  Applying:      "bg-sky-50 text-sky-700 border border-sky-200",
+  Applied:       "bg-blue-50 text-blue-700 border border-blue-200",
+  Interviewing:  "bg-amber-50 text-amber-700 border border-amber-200",
+  Negotiating:   "bg-violet-50 text-violet-700 border border-violet-200",
+  Accepted:      "bg-emerald-50 text-emerald-700 border border-emerald-200",
+  "I Withdrew":  "bg-orange-50 text-orange-600 border border-orange-200",
+  "Not Selected":"bg-red-50 text-red-600 border border-red-200",
+  "No Response": "bg-rose-50 text-rose-500 border border-rose-200",
+  Archived:      "bg-slate-100 text-slate-400 border border-slate-200",
 };
