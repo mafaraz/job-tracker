@@ -1,7 +1,7 @@
 # Product Requirements Document — Job Tracker
 
-**Version:** 1.1 (MVP)
-**Date:** 2026-04-24
+**Version:** 1.2
+**Date:** 2026-04-25
 **Author:** Ahmad Faraz
 **Status:** Draft
 
@@ -20,6 +20,9 @@ Build a simple, personal web application to centralize job search activity — t
 ### 1.3 Non-Goals (MVP)
 
 - Chrome extension (Phase 2)
+- Enhanced pipeline stages, excitement rating, deadline field (Phase 2)
+- People / Companies / Compensation / Offer Analysis tabs (Phase 2)
+- Bulk selection and grid view (Phase 2)
 - AI resume/cover letter generation (Phase 3)
 - Email/Gmail integration (Phase 3)
 - Google Drive document management (Phase 3)
@@ -70,17 +73,52 @@ Each job is one row in a Google Sheet. Columns:
 | `salary_range` | String | e.g. "$120k–$140k" (nullable) |
 | `notes` | String | Free text — interview notes, context |
 | `job_description` | String | Full or partial job description (optional) |
+| `resume_url` | String | Local path or URL to resume file (nullable) |
+| `cover_letter_url` | String | Local path or URL to cover letter file (nullable) |
+
+> **Phase 2 additions to data model** (not yet in sheet):
+>
+> | Column | Type | Description |
+> |---|---|---|
+> | `max_salary` | String | Replaces `salary_range` — labelled "Max. Salary" in UI |
+> | `deadline` | Date | Application deadline (nullable) |
+> | `excitement` | Integer 1–5 | Personal excitement/interest rating (nullable) |
 
 ### Pipeline Stages (status)
 
+**Current (MVP):**
 ```
 Saved → Applied → Interviewing → Offer → Accepted
-                                        → Rejected
-                              → Rejected
-              → Rejected
+                                       → Rejected
+                             → Rejected
+             → Rejected
+              → Closed
 ```
 
 Displayed values: `Saved` | `Applied` | `Interviewing` | `Offer` | `Accepted` | `Rejected` | `Closed`
+
+**Phase 2 — Expanded stages (10 values):**
+
+```
+Bookmarked → Applying → Applied → Interviewing → Negotiating → Accepted
+                                                             → I Withdrew
+                                               → Not Selected
+                                               → No Response
+                                  → Archived
+```
+
+| Stage | Replaces | Description |
+|---|---|---|
+| `Bookmarked` | `Saved` | Job saved for later review |
+| `Applying` | *(new)* | Actively preparing application |
+| `Applied` | `Applied` | Application submitted |
+| `Interviewing` | `Interviewing` | In interview process |
+| `Negotiating` | `Offer` | Offer received, negotiating |
+| `Accepted` | `Accepted` | Offer accepted |
+| `I Withdrew` | *(new)* | Withdrew own application |
+| `Not Selected` | `Rejected` | Rejected by employer |
+| `No Response` | *(new)* | Application ghosted |
+| `Archived` | `Closed` | No longer active |
 
 ---
 
@@ -90,21 +128,29 @@ Displayed values: `Saved` | `Applied` | `Interviewing` | `Offer` | `Accepted` | 
 
 **Description:** Main screen showing all tracked jobs.
 
-**Requirements:**
-- Display jobs in a table view with columns: Company, Job Title, Status, Source, Date Added, Follow-up Date, Inbound flag
-- Color-coded status badges (e.g. green = Offer, red = Rejected, blue = Applied)
-- Filter by: Status, Source, Inbound/Outbound
-- Sort by: Date Added, Company, Follow-up Date
+**Requirements (MVP — implemented):**
+- Display jobs in a table view with columns: Company, Role, Status, Source, Added, Follow Up, Type, Docs
+- Color-coded status badges
+- Filter by: Status (via pipeline bar), Source, Inbound/Outbound
 - Search by: Company name or Job Title (client-side)
 - "Needs action" highlight — rows where follow-up date is today or past
+
+**Phase 2 additions:**
+- Add **Location**, **Max. Salary**, **Deadline**, **Date Applied** as visible table columns
+- Add **Excitement** column — star rating display (1–5 stars)
+- Add **checkbox** per row for bulk selection — show "N selected" counter in toolbar
+- Bulk actions on selected rows: change status, delete
+- **View toggle** — switch between List (table) view and Grid (card) view
+- Grid view shows jobs as cards with company, role, status badge, excitement stars, deadline
 
 ### 5.2 Add Job Form
 
 **Description:** Modal or page to manually add a new job.
 
 **Requirements:**
-- Fields: Job Title, Company, Location, Source (dropdown), Job URL, Status (default: Saved), Inbound toggle, Recruiter Name, Recruiter Email, Salary Range, Follow-up Date, Notes, Job Description (textarea)
+- Fields: Job Title, Company, Location, Source (dropdown), Job URL, Status (default: Saved), Inbound toggle, Recruiter Name, Recruiter Email, Salary Range, Follow-up Date, Notes, Job Description (textarea), Resume Path/URL, Cover Letter Path/URL
 - Required fields: Job Title, Company, Status
+- **Phase 2:** Add Deadline (date) and Excitement (star picker 1–5) fields
 - On submit: appends a new row to Google Sheet, assigns UUID, sets Date Added to today
 - Validation: URL format for job_url, date format for dates
 
@@ -138,25 +184,80 @@ Displayed values: `Saved` | `Applied` | `Interviewing` | `Offer` | `Accepted` | 
 
 **Description:** At-a-glance count per stage.
 
-**Requirements:**
-- Row of counters at the top of the board: Saved (n) | Applied (n) | Interviewing (n) | Offer (n)
-- Clicking a counter filters the table to that status
+**Requirements (MVP — implemented):**
+- 4 clickable stat cards: Saved | Applied | Interviewing | Offer — each shows count
+- Clicking a card filters the table to that status
+
+**Phase 2:**
+- Replace stat cards with a **horizontal chevron/arrow flow bar** spanning all active stages
+- Show count above each stage chevron
+- All 10 expanded stages displayed in sequence
+- Stages with 0 count shown as `--`
+- Clicking any chevron filters the table
 
 ### 5.8 Resume & Cover Letter Attachments
 
-**Description:** Attach a resume and/or cover letter PDF/DOCX to any job entry.
+**Description:** Link a resume and/or cover letter to any job entry.
+
+**Requirements (MVP — implemented):**
+- Two plain text fields in the job modal: Resume Path/URL and Cover Letter Path/URL
+- User pastes a local file path (e.g. `C:\Docs\resume.pdf`) or any URL
+- Values stored in Google Sheet columns `resume_url` and `cover_letter_url`
+- CV and CL badge links shown in the Docs column of the table — clicking opens the path/URL
+
+### 5.10 People Tab *(Phase 2)*
+
+**Description:** Dedicated contacts/recruiter management page, separate from individual job entries.
 
 **Requirements:**
-- File picker inputs in the job modal for Resume and Cover Letter
-- On save, files are uploaded to a `Job Tracker/` folder in Google Drive via the Drive API (same service account)
-- Drive file URLs stored in the Google Sheet (`resume_url`, `cover_letter_url` columns)
-- Uploaded files are accessible to anyone with the link (viewer permission)
-- Existing attachments shown as clickable links in the modal with a Replace option
-- Attachment indicators (paperclip icons) shown in the job table row
-- Accepted formats: PDF, DOC, DOCX (max ~4MB per file)
-- Requires Google Drive API enabled on the same Google Cloud project
+- Standalone tab in top navigation
+- Each contact: name, email, phone, company, LinkedIn URL, notes, linked jobs (many-to-one)
+- Search and filter contacts by company or name
+- Link a contact to one or more job entries
+- Stored in a separate **People** tab in the Google Sheet
 
-### 5.9 Google Sheets Sync
+---
+
+### 5.11 Companies Tab *(Phase 2)*
+
+**Description:** Company profiles linked to job entries.
+
+**Requirements:**
+- Standalone tab in top navigation
+- Each company: name, industry, size range, website, location, notes
+- Auto-populated when a job is added with a matching company name
+- Clicking a company shows all associated job entries
+- Stored in a separate **Companies** tab in the Google Sheet
+
+---
+
+### 5.12 Compensation Tab *(Phase 2)*
+
+**Description:** Detailed compensation tracking per job.
+
+**Requirements:**
+- Standalone tab in top navigation
+- Per-job breakdown: base salary, bonus, equity, superannuation, other benefits
+- Total compensation calculation
+- Linked to job entries by job ID
+- Stored in a separate **Compensation** tab in the Google Sheet
+
+---
+
+### 5.13 Offer Analysis Tab *(Phase 2)*
+
+**Description:** Side-by-side comparison of jobs in Negotiating / Offer stage.
+
+**Requirements:**
+- Standalone tab in top navigation
+- Displays only jobs with status Negotiating or Accepted
+- Comparison table: role, company, location, total comp, excitement rating, deadline
+- Highlights best offer per category (e.g. highest salary, closest deadline)
+- Read-only view — editing done via individual job modal
+
+---
+
+### 5.14 Google Sheets Sync
 
 **Requirements:**
 - All reads on page load — fetch all rows from the sheet
@@ -169,13 +270,22 @@ Displayed values: `Saved` | `Applied` | `Interviewing` | `Offer` | `Accepted` | 
 
 ## 6. Pages / Routes
 
+**MVP (implemented):**
+
 | Route | Description |
 |---|---|
 | `/` | Job board — main view |
-| `/jobs/new` | Add new job (or modal on `/`) |
-| `/jobs/[id]` | Job detail / edit (or side drawer on `/`) |
+| `/jobs/new` | Add new job (modal on `/`) |
+| `/jobs/[id]` | Job detail / edit (modal on `/`) |
 
-For MVP simplicity, prefer modals/drawers over separate pages.
+**Phase 2 additions:**
+
+| Route | Description |
+|---|---|
+| `/people` | Contacts / recruiters tab |
+| `/companies` | Company profiles tab |
+| `/compensation` | Compensation tracker tab |
+| `/offers` | Offer analysis tab |
 
 ---
 
@@ -247,7 +357,16 @@ docker compose up
 
 | Feature | Deferred To |
 |---|---|
-| Chrome extension for auto-extracting jobs | Phase 2 |
+| Expanded pipeline stages (10 values) | Phase 2 |
+| Deadline + Excitement fields | Phase 2 |
+| Bulk row selection + bulk actions | Phase 2 |
+| Grid / card view toggle | Phase 2 |
+| Chevron pipeline flow bar | Phase 2 |
+| People tab (contact management) | Phase 2 |
+| Companies tab (company profiles) | Phase 2 |
+| Compensation tab (detailed package tracking) | Phase 2 |
+| Offer Analysis tab (side-by-side comparison) | Phase 2 |
+| Chrome extension for auto-extracting jobs | Phase 3 |
 | AI-powered resume & cover letter generation (Claude/Anthropic) | Phase 3 |
 | Gmail integration — send applications directly | Phase 3 |
 | Networking tracker — LinkedIn connection log | Phase 4 |
@@ -261,16 +380,16 @@ docker compose up
 - Can see all jobs and their statuses at a glance
 - Never miss a follow-up (action-required section is visible on load)
 - All data persists in Google Sheets and survives page refresh
-- Can run locally with `npm run dev` after one-time Google Sheets setup
-- Can attach a resume or cover letter to a job in under 10 seconds
-- Attached files are accessible via Drive link from the job detail view
+- Can run locally with `npm run dev` or `docker compose up` after one-time setup
+- Can link a resume or cover letter path/URL to a job entry
 
 ---
 
-## 11. Future Phases (Summary)
+## 12. Future Phases (Summary)
 
 | Phase | Focus |
 |---|---|
-| 2 | Chrome extension — one-click save from LinkedIn, Seek, Indeed |
-| 3 | AI documents — Claude-powered tailored resume + cover letter, Google Drive save, Gmail send |
-| 4 | Networking — track LinkedIn outreach, company contacts |
+| 2 | Enhanced job board (10-stage pipeline, excitement/deadline fields, bulk actions, grid view) + People, Companies, Compensation, Offer Analysis tabs |
+| 3 | Chrome extension — one-click save from LinkedIn, Seek, Indeed |
+| 4 | AI documents — Claude-powered resume tailoring, cover letter generation, Google Drive save, Gmail send |
+| 5 | Networking — track LinkedIn outreach, company contacts |

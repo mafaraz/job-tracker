@@ -57,18 +57,36 @@ types/
 - [x] Docker containerisation — `docker compose up`
 - [x] Professional blue-and-white theme
 
-### Phase 2 — Chrome Extension
+### Phase 2 — Enhanced Job Board + New Tabs
+
+**Job Board enhancements:**
+- [ ] Expand pipeline stages from 7 → 10: Bookmarked, Applying, Applied, Interviewing, Negotiating, Accepted, I Withdrew, Not Selected, No Response, Archived
+- [ ] Add `deadline` field (date) and `excitement` field (integer 1–5 star rating) to data model + Sheets columns S and T
+- [ ] Rename `salary_range` → `max_salary` in data model and UI
+- [ ] Add Deadline, Excitement, Location, Max. Salary, Date Applied as visible table columns
+- [ ] Excitement column renders as star rating (read-only in table, picker in modal)
+- [ ] Bulk row selection — checkbox per row, "N selected" counter, bulk status change + delete
+- [ ] List / Grid view toggle — grid shows job cards with key fields
+- [ ] Replace 4 stat cards with horizontal chevron/arrow pipeline flow bar (all 10 stages, clickable)
+
+**New tabs:**
+- [ ] People tab (`/people`) — contacts/recruiters, searchable, linked to jobs
+- [ ] Companies tab (`/companies`) — company profiles, auto-linked from job entries
+- [ ] Compensation tab (`/compensation`) — base, bonus, equity, super per job; total comp calc
+- [ ] Offer Analysis tab (`/offers`) — side-by-side comparison of Negotiating/Accepted jobs
+
+### Phase 3 — Chrome Extension
 - [ ] One-click "Save Job" button on LinkedIn, Seek.com.au, Indeed
 - [ ] Auto-extract: job title, company, location, salary, description, URL
 - [ ] Push directly to Google Sheets / app
 
-### Phase 3 — AI & Documents
+### Phase 4 — AI & Documents
 - [ ] Claude (Anthropic) powered resume tailoring against job description
 - [ ] Cover letter generation using Anthropic API
 - [ ] Google Drive save for generated documents
 - [ ] Gmail integration — send application directly from the app
 
-### Phase 4 — Networking
+### Phase 5 — Networking
 - [ ] LinkedIn connection request tracker (approval-based, not automated)
 - [ ] Company contact log
 
@@ -81,5 +99,5 @@ types/
 - **API routes are server-only.** All Google Sheets and sensitive operations stay in `app/api/`. Never call googleapis from a client component.
 - **TypeScript strict.** Run `npx tsc --noEmit` before committing. No type errors allowed.
 - **Docker rebuild required** for any code changes when running via `docker compose up --build`.
-- **Column order in sheets.ts matters.** `HEADER_ROW`, `rowToJob`, and `jobToRow` must stay in sync. Adding columns always goes at the end (columns Q, R, S…).
+- **Column order in sheets.ts matters.** `HEADER_ROW`, `rowToJob`, and `jobToRow` must stay in sync. Adding columns always goes at the end. Current last column is R (`cover_letter_url`). Phase 2 adds S (`deadline`) and T (`excitement`).
 - **Status badge colours are defined in `types/job.ts`** under `STATUS_COLORS`. Update there, not in components.
